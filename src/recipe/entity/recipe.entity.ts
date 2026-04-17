@@ -1,6 +1,7 @@
 import { Ingredient } from "src/ingredient/entity/ingredient.entity";
 import { User } from "src/user/entity/user.entity";
 import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Rating } from "src/rating/entity/rating.entity";
 
 @Entity()
 export class Recipe {
@@ -30,4 +31,7 @@ export class Recipe {
 
     @OneToMany(() => Ingredient, (ingredient) => ingredient.recipe)
     ingredients!: Ingredient[];
+
+    @OneToMany(() => Rating, (rating) => rating.recipe)
+    ratings!: Rating[];
 }
