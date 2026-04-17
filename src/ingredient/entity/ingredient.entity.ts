@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Recipe } from "src/recipe/entity/recipe.entity";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Ingredient {
@@ -21,4 +22,7 @@ export class Ingredient {
         nullable: false
     })
     unit!: string;
+
+    @ManyToOne(() => Recipe, (recipe) => recipe.ingredients)
+    recipe!: Recipe;
 }
