@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import { Recipe } from "src/recipe/entity/recipe.entity";
-=======
 import { Rating } from "src/rating/entity/rating.entity";
->>>>>>> rating
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -41,11 +38,9 @@ export class User {
     })
     verified!: boolean;
 
-<<<<<<< HEAD
     @OneToMany(() => Recipe, (recipe) => recipe.user)
     recipes!: Recipe[];
-=======
+
     @OneToMany(() => Rating, (rating) => rating.user)
     ratings!: Rating[];
->>>>>>> rating
 }
