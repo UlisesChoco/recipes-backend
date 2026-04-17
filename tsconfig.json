@@ -13,7 +13,7 @@
     "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "ignoreDeprecations": "6.0", //so that "baseUrl" doesn't show a warning
+    //"ignoreDeprecations": "6.0", //so that "baseUrl" doesn't show a warning
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
