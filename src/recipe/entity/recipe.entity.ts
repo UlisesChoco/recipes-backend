@@ -1,5 +1,6 @@
 import { Ingredient } from "src/ingredient/entity/ingredient.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "src/user/entity/user.entity";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Recipe {
@@ -23,6 +24,9 @@ export class Recipe {
         nullable: false
     })
     image!: string;
+
+    @ManyToOne(() => User, (user) => user.recipes)
+    user!: User;
 
     @OneToMany(() => Ingredient, (ingredient) => ingredient.recipe)
     ingredients!: Ingredient[];
