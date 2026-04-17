@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
 import { UserModule } from './user/user.module';
 import { IngredientModule } from './ingredient/ingredient.module';
+import { RecipeModule } from './recipe/recipe.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { IngredientModule } from './ingredient/ingredient.module';
     }),
 
     UserModule,
-    IngredientModule
+    IngredientModule,
+    RecipeModule
   ],
   controllers: [AppController],
   providers: [AppService],
