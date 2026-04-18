@@ -1,6 +1,6 @@
 import { IsEmail, IsString, Matches, Length } from "class-validator";
 
-export class UserRegisterDTO {
+export class AuthRegisterDTO {
     @IsString()
     @Length(2, 20)
     @Matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$/, {

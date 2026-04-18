@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { IngredientModule } from './ingredient/ingredient.module';
 import { RecipeModule } from './recipe/recipe.module';
 import { RatingModule } from './rating/rating.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RatingModule } from './rating/rating.module';
       }),
     }),
 
+    AuthModule,
     UserModule,
     IngredientModule,
     RecipeModule,
