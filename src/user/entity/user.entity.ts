@@ -32,12 +32,6 @@ export class User {
     })
     email!: string;
 
-    @Column({
-        default: false,
-        nullable: false
-    })
-    verified!: boolean;
-
     @OneToMany(() => Recipe, (recipe) => recipe.user)
     recipes!: Recipe[];
 

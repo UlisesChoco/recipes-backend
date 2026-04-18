@@ -4,6 +4,4 @@ export class UserDTO {
     surname!: string;
     
     email!: string;
-
-    verified!: boolean;
 }
