@@ -18,6 +18,12 @@ export class RecipeService {
         private readonly dataSource: DataSource
     ) { }
 
+    async existsById(
+        id: number
+    ): Promise<boolean> {
+        return await this.recipeRepository.existsBy({ id });
+    }
+
     async findByUserId(
         userId: number
     ): Promise<RecipeDTO[]> {

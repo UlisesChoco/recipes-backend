@@ -1,6 +1,6 @@
 import { Recipe } from "src/recipe/entity/recipe.entity";
 import { User } from "src/user/entity/user.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Rating {
@@ -19,8 +19,10 @@ export class Rating {
     comment!: string;
 
     @ManyToOne(() => Recipe, (recipe) => recipe.ratings)
+    @JoinColumn({ name: 'recipe_id' })
     recipe!: Recipe;
 
     @ManyToOne(() => User, (user) => user.ratings)
+    @JoinColumn({ name: 'user_id' })
     user!: User;
 }
