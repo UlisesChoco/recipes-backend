@@ -7,12 +7,31 @@ import { RecipeDTO } from "../dto/recipe.dto";
 import { RecipeWithIngredientsDTO } from "../dto/recipe-with-ingredients.dto";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { MultipartTransformInterceptor } from "src/common/interceptor/multipart-transform.interceptor";
+import { RecipeWithUserDTO } from "../dto/recipe-with-user.dto";
+import { RecipeWithUserAndIngredientsDTO } from "../dto/recipe-with-user-and-ingredients.dto";
 
 @Controller('recipes')
 export class RecipeController {
     constructor(
         private readonly recipeService: RecipeService
     ) { }
+
+    @Get()
+    @HttpCode(200)
+    @UseGuards(JwtGuard)
+    async retrieveAllRecipes(): Promise<RecipeWithUserDTO[]> {
+        return await this.recipeService.findAll();
+    }
+
+    @Get(':id')
+    @HttpCode(200)
+    @UseGuards(JwtGuard)
+    async retrieveRecipeById(
+        @Req() req: any,
+        @Param('id', ParseIntPipe) id: number
+    ): Promise<RecipeWithUserAndIngredientsDTO> {
+        return await this.recipeService.findById(id);
+    }
 
     @Get('me')
     @HttpCode(200)
