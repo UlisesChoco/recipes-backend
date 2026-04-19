@@ -1,5 +1,5 @@
 import { Recipe } from "src/recipe/entity/recipe.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Ingredient {
@@ -24,5 +24,6 @@ export class Ingredient {
     unit!: string;
 
     @ManyToOne(() => Recipe, (recipe) => recipe.ingredients)
+    @JoinColumn({ name: "recipe_id" })
     recipe!: Recipe;
 }
