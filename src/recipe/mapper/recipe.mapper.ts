@@ -4,6 +4,8 @@ import { UpdateRecipeDTO } from "../dto/update-recipe.dto";
 import { Recipe } from "../entity/recipe.entity";
 import { CreateRecipeDTO } from "../dto/create-recipe.dto";
 import { RecipeWithIngredientsDTO } from "../dto/recipe-with-ingredients.dto";
+import { RecipeWithUserDTO } from "../dto/recipe-with-user.dto";
+import { RecipeWithUserAndIngredientsDTO } from "../dto/recipe-with-user-and-ingredients.dto";
 
 export class RecipeMapper {
     static toRecipeDTO(entity: Recipe): RecipeDTO {
@@ -36,6 +38,33 @@ export class RecipeMapper {
             entity.title,
             entity.description,
             entity.image,
+            entity.ingredients.map(ingredient => IngredientMapper.toIngredientDTO(ingredient))
+        );
+    }
+
+    static toRecipeWithUserDTO(entity: Recipe): RecipeWithUserDTO {
+        return new RecipeWithUserDTO(
+            entity.id,
+            entity.title,
+            entity.description,
+            entity.image,
+            {
+                name: entity.user.name,
+                surname: entity.user.surname
+            }
+        );
+    }
+
+    static toRecipeWithUserAndIngredientsDTO(entity: Recipe): RecipeWithUserAndIngredientsDTO {
+        return new RecipeWithUserAndIngredientsDTO(
+            entity.id,
+            entity.title,
+            entity.description,
+            entity.image,
+            {
+                name: entity.user.name,
+                surname: entity.user.surname
+            },
             entity.ingredients.map(ingredient => IngredientMapper.toIngredientDTO(ingredient))
         );
     }

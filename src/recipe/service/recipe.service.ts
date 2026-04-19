@@ -10,6 +10,8 @@ import { UpdateRecipeDTO } from "../dto/update-recipe.dto";
 import { RecipeWithIngredientsDTO } from "../dto/recipe-with-ingredients.dto";
 import { IngredientDTO } from "src/ingredient/dto/ingredient.dto";
 import { deleteImage, saveImage } from "src/common/util/image-functions";
+import { RecipeWithUserDTO } from "../dto/recipe-with-user.dto";
+import { RecipeWithUserAndIngredientsDTO } from "../dto/recipe-with-user-and-ingredients.dto";
 
 @Injectable()
 export class RecipeService {
@@ -22,6 +24,25 @@ export class RecipeService {
         id: number
     ): Promise<boolean> {
         return await this.recipeRepository.existsBy({ id });
+    }
+    
+    async findById(
+        id: number
+    ): Promise<RecipeWithUserAndIngredientsDTO> {
+        const entity: Recipe | null = await this.recipeRepository.findOne({
+            where: { id: id }
+        });
+
+        if (!entity)
+            throw new NotFoundException();
+
+        return RecipeMapper.toRecipeWithUserAndIngredientsDTO(entity);
+    }
+
+    async findAll(): Promise<RecipeWithUserDTO[]> {
+        const entities: Recipe[] = await this.recipeRepository.find();
+
+        return entities.map(entity => RecipeMapper.toRecipeWithUserDTO(entity));
     }
 
     async findByUserId(
