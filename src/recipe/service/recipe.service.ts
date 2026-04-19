@@ -12,6 +12,7 @@ import { IngredientDTO } from "src/ingredient/dto/ingredient.dto";
 import { deleteImage, saveImage } from "src/common/util/image-functions";
 import { RecipeWithUserDTO } from "../dto/recipe-with-user.dto";
 import { RecipeWithUserAndIngredientsDTO } from "../dto/recipe-with-user-and-ingredients.dto";
+import { Rating } from "src/rating/entity/rating.entity";
 
 @Injectable()
 export class RecipeService {
@@ -30,7 +31,8 @@ export class RecipeService {
         id: number
     ): Promise<RecipeWithUserAndIngredientsDTO> {
         const entity: Recipe | null = await this.recipeRepository.findOne({
-            where: { id: id }
+            where: { id: id },
+            relations: ['user', 'ingredients']
         });
 
         if (!entity)
@@ -40,7 +42,9 @@ export class RecipeService {
     }
 
     async findAll(): Promise<RecipeWithUserDTO[]> {
-        const entities: Recipe[] = await this.recipeRepository.find();
+        const entities: Recipe[] = await this.recipeRepository.find({
+            relations: ['user']
+        });
 
         return entities.map(entity => RecipeMapper.toRecipeWithUserDTO(entity));
     }
@@ -166,6 +170,28 @@ export class RecipeService {
         });
 
         return RecipeMapper.toRecipeWithIngredientsDTO(updated!);
+    }
+
+    async delete(
+        userId: number,
+        id: number
+    ): Promise<void> {
+        await this.dataSource.transaction(async (manager) => {
+            const recipeRepository = manager.getRepository(Recipe);
+            const ingredientRepository = manager.getRepository(Ingredient);
+            const ratingRepository = manager.getRepository(Rating);
+
+            const recipe = await this.findByIdAndUserId(id, userId);
+
+            if (!recipe)
+                throw new NotFoundException('Recipe not found');
+
+            await ingredientRepository.delete({ recipe: { id: id } });
+            await ratingRepository.delete({ recipe: { id: id } });
+            await recipeRepository.delete({ id: id });
+
+            if (recipe.image) await deleteImage("/app/uploads/"+recipe.image);
+        });
     }
 
     private createIngredients(

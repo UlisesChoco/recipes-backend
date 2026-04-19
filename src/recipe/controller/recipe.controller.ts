@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { RecipeService } from "../service/recipe.service";
 import { JwtGuard } from "src/common/guard/jwt.guard";
 import { CreateRecipeDTO } from "../dto/create-recipe.dto";
@@ -23,6 +23,15 @@ export class RecipeController {
         return await this.recipeService.findAll();
     }
 
+    @Get('me')
+    @HttpCode(200)
+    @UseGuards(JwtGuard)
+    async retrieveMyRecipes(
+        @Req() req: any
+    ): Promise<RecipeDTO[]> {
+        return await this.recipeService.findByUserId(req.user.sub);
+    }
+
     @Get(':id')
     @HttpCode(200)
     @UseGuards(JwtGuard)
@@ -31,15 +40,6 @@ export class RecipeController {
         @Param('id', ParseIntPipe) id: number
     ): Promise<RecipeWithUserAndIngredientsDTO> {
         return await this.recipeService.findById(id);
-    }
-
-    @Get('me')
-    @HttpCode(200)
-    @UseGuards(JwtGuard)
-    async retrieveMyRecipes(
-        @Req() req: any
-    ): Promise<RecipeDTO[]> {
-        return await this.recipeService.findByUserId(req.user.sub);
     }
 
     @Post()
@@ -55,6 +55,7 @@ export class RecipeController {
     }
 
     @Patch(':id')
+    @HttpCode(200)
     @UseInterceptors(FileInterceptor('image'), MultipartTransformInterceptor)
     @UseGuards(JwtGuard)
     async update(
@@ -64,5 +65,15 @@ export class RecipeController {
         @Body() body: UpdateRecipeDTO
     ): Promise<RecipeWithIngredientsDTO> {
         return await this.recipeService.update(req.user.sub, id, image, body);
+    }
+
+    @Delete(':id')
+    @HttpCode(204)
+    @UseGuards(JwtGuard)
+    async delete(
+        @Req() req: any,
+        @Param('id', ParseIntPipe) id: number
+    ): Promise<void> {
+        return await this.recipeService.delete(req.user.sub, id);
     }
 }
