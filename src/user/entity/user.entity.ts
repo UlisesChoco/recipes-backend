@@ -1,6 +1,6 @@
 import { Recipe } from "src/recipe/entity/recipe.entity";
 import { Rating } from "src/rating/entity/rating.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class User {
@@ -31,6 +31,12 @@ export class User {
         unique: true
     })
     email!: string;
+
+    @CreateDateColumn({ name: "created_at" })
+    createdAt!: Date;
+
+    @UpdateDateColumn({ name: "updated_at" })
+    updatedAt!: Date;
 
     @OneToMany(() => Recipe, (recipe) => recipe.user)
     recipes!: Recipe[];
