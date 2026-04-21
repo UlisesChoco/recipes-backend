@@ -106,7 +106,15 @@ docker compose up --build -d
 
 ### Esquema de base de datos
 
+<img width="494" height="423" alt="der" src="https://github.com/user-attachments/assets/7a2849ca-b795-4bdb-9299-f3ea20375dac" />
+
 Aunque se utiliza TypeORM para repositorios y consultas, **el proyecto no depende de la generación automática de esquema por anotaciones del ORM**. El esquema y relaciones se crean desde el script SQL en [sql/init.sql](sql/init.sql), y la app corre con `synchronize: false`.
+
+## Gestión del proyecto
+
+Tanto para el backend como el frontend, se usó la plataforma Jira para la gestión de tickets como medio de mejor organización, vinculando el mensaje de los commits con IDs de tickets Jira.
+
+<img width="1196" height="498" alt="image" src="https://github.com/user-attachments/assets/b5fb7a21-8c52-45c1-8fec-0344dda04c39" />
 
 ## Features
 
