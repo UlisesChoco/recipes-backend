@@ -1,98 +1,521 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Recipes Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST construida con NestJS y TypeScript.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Setup
 
-## Description
+El proyecto está dockerizado y puede levantarse junto al frontend con Docker Compose.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Requisitos
 
-## Project setup
+- Docker
+- Docker Compose
+
+### 1) Clonar repositorios
 
 ```bash
-$ npm install
+mkdir recipes-app
+cd recipes-app
+git clone https://github.com/UlisesChoco/recipes-backend
+git clone https://github.com/UlisesChoco/recipes-frontend
 ```
 
-## Compile and run the project
+### 2) Configurar variables de entorno
+
+En el backend, crear el archivo `.env` a partir de `.env-template`:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp recipes-backend/.env-template recipes-backend/.env
 ```
 
-## Run tests
+### 3) Crear docker-compose.yml en la raíz
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+touch docker-compose.yml
 ```
 
-## Deployment
+Contenido sugerido de `docker-compose.yml`:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```yaml
+services:
+	recipes-backend:
+		build: ./recipes-backend
+		container_name: recipes_backend
+		ports:
+			- "3000:3000"
+		env_file:
+			- ./recipes-backend/.env
+		depends_on:
+			db:
+				condition: service_healthy
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+	db:
+		image: mysql:8.4.8
+		container_name: mysql_db
+		restart: unless-stopped
+		environment:
+			MYSQL_ROOT_PASSWORD: root
+			MYSQL_DATABASE: recipes
+		ports:
+			- "3306:3306"
+		volumes:
+			- db_data:/var/lib/mysql
+			- ./recipes-backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+		healthcheck:
+			test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+			interval: 5s
+			timeout: 5s
+			retries: 10
+
+	recipes-frontend:
+		build:
+			context: ./recipes-frontend
+			args:
+				VITE_API_URL: http://localhost:3000
+		container_name: recipes_frontend
+		ports:
+			- "80:80"
+
+volumes:
+	db_data:
+```
+
+### 4) Levantar la aplicación
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose up --build -d
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5) Servicios levantados
 
-## Resources
+- `recipes_backend`: API NestJS en puerto `3000`
+- `recipes_frontend`: Frontend React en puerto `80`
+- `mysql_db`: MySQL en puerto `3306`
 
-Check out a few resources that may come in handy when working with NestJS:
+### 6) Acceso
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- Frontend: http://localhost:80
+- Backend API: http://localhost:3000
 
-## Support
+## Stack y arquitectura
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- Framework: NestJS
+- Lenguaje: TypeScript
+- Base de datos: MySQL (relacional)
+- ORM: TypeORM
 
-## Stay in touch
+### Esquema de base de datos
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Aunque se utiliza TypeORM para repositorios y consultas, **el proyecto no depende de la generación automática de esquema por anotaciones del ORM**. El esquema y relaciones se crean desde el script SQL en [sql/init.sql](sql/init.sql), y la app corre con `synchronize: false`.
 
-## License
+## Features
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Almacenamiento local de imágenes
+
+- Las imágenes de recetas se guardan en disco local dentro de la carpeta `uploads` (en runtime).
+- La API guarda archivos físicamente en backend y expone esa carpeta en `/uploads` mediante `ServeStaticModule`.
+- En MySQL, la tabla `recipe` almacena **solo el nombre del archivo** en la columna `image`.
+
+Ejemplo:
+
+- Valor almacenado en BD: `1713758123456-pasta.jpeg`
+- URL pública consumible por frontend: `http://api/uploads/1713758123456-pasta.jpeg`
+
+Nota: en desarrollo local, `api` suele mapear al host del backend (por ejemplo `http://localhost:3000/uploads/...`).
+
+### Seguridad
+
+- Los endpoints protegidos esperan header `Authorization: Bearer <JWT>`.
+- El JWT se obtiene en `POST /auth/login`.
+
+## Validaciones y errores comunes
+
+- Se usan validaciones con `class-validator` y `ValidationPipe` global.
+- Si el body incluye propiedades no permitidas o tipos inválidos, la API responde `400 Bad Request`.
+- Errores no controlados responden `500 Internal Server Error`.
+
+## Endpoints REST
+
+Base URL: `http://localhost:3000`
+
+---
+
+### Auth
+
+#### 1. Registro
+
+- Tipo: `POST`
+- URL: `/auth/register`
+
+Request body (JSON):
+
+```json
+{
+	"name": "Juan",
+	"surname": "Perez",
+	"email": "juan@mail.com",
+	"password": "Abcdef12"
+}
+```
+
+Response body `201 Created`:
+
+```json
+{
+	"name": "Juan",
+	"surname": "Perez",
+	"email": "juan@mail.com"
+}
+```
+
+Códigos HTTP posibles:
+
+- `201 Created`: usuario registrado.
+- `400 Bad Request`: email ya existente o body inválido.
+
+#### 2. Login
+
+- Tipo: `POST`
+- URL: `/auth/login`
+
+Request body (JSON):
+
+```json
+{
+	"email": "juan@mail.com",
+	"password": "Abcdef12"
+}
+```
+
+Response body `200 OK`:
+
+```json
+{
+	"token": "<jwt-token>"
+}
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: autenticación exitosa.
+- `400 Bad Request`: body inválido.
+- `401 Unauthorized`: credenciales inválidas.
+
+---
+
+### Users
+
+#### 3. Buscar usuario por email
+
+- Tipo: `GET`
+- URL: `/users?email={email}`
+
+Request body: no aplica.
+
+Response body `200 OK`:
+
+```json
+{
+	"name": "Juan",
+	"surname": "Perez",
+	"email": "juan@mail.com"
+}
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: usuario encontrado.
+- `404 Not Found`: usuario inexistente.
+
+---
+
+### Recipes (protegido con JWT)
+
+#### 4. Listar recetas públicas
+
+- Tipo: `GET`
+- URL: `/recipes`
+- Auth: Bearer token requerido.
+
+Request body: no aplica.
+
+Response body `200 OK`:
+
+```json
+[
+	{
+		"id": 1,
+		"title": "Pasta casera",
+		"description": "Receta simple",
+		"image": "1713758123456-pasta.jpeg",
+		"user": {
+			"name": "Juan",
+			"surname": "Perez"
+		}
+	}
+]
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: listado obtenido.
+- `401 Unauthorized`: token ausente/inválido.
+
+#### 5. Listar mis recetas
+
+- Tipo: `GET`
+- URL: `/recipes/me`
+- Auth: Bearer token requerido.
+
+Request body: no aplica.
+
+Response body `200 OK`:
+
+```json
+[
+	{
+		"id": 1,
+		"title": "Pasta casera",
+		"description": "Receta simple",
+		"image": "1713758123456-pasta.jpeg"
+	}
+]
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: listado obtenido.
+- `401 Unauthorized`: token ausente/inválido.
+
+#### 6. Obtener receta por ID
+
+- Tipo: `GET`
+- URL: `/recipes/:id`
+- Auth: Bearer token requerido.
+
+Request body: no aplica.
+
+Response body `200 OK`:
+
+```json
+{
+	"id": 1,
+	"title": "Pasta casera",
+	"description": "Receta simple",
+	"image": "1713758123456-pasta.jpeg",
+	"user": {
+		"name": "Juan",
+		"surname": "Perez"
+	},
+	"ingredients": [
+		{
+			"name": "Harina",
+			"amount": 500,
+			"unit": "g"
+		}
+	]
+}
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: receta encontrada.
+- `400 Bad Request`: `id` inválido.
+- `401 Unauthorized`: token ausente/inválido.
+- `404 Not Found`: receta no existe.
+
+#### 7. Crear receta
+
+- Tipo: `POST`
+- URL: `/recipes`
+- Auth: Bearer token requerido.
+- Content-Type: `multipart/form-data`
+
+Campos esperados (multipart):
+
+- `image`: archivo de imagen.
+- `data`: string JSON con este formato:
+
+```json
+{
+	"title": "Pasta casera",
+	"description": "Receta simple",
+	"ingredients": [
+		{
+			"name": "Harina",
+			"amount": 500,
+			"unit": "g"
+		}
+	]
+}
+```
+
+Response body `201 Created`:
+
+```json
+{
+	"title": "Pasta casera",
+	"description": "Receta simple",
+	"image": "1713758123456-pasta.jpeg",
+	"ingredients": [
+		{
+			"name": "Harina",
+			"amount": 500,
+			"unit": "g"
+		}
+	]
+}
+```
+
+Códigos HTTP posibles:
+
+- `201 Created`: receta creada.
+- `400 Bad Request`: JSON inválido en `data`, validaciones fallidas o receta sin ingredientes.
+- `401 Unauthorized`: token ausente/inválido.
+- `500 Internal Server Error`: error al persistir o al guardar imagen.
+
+#### 8. Actualizar receta
+
+- Tipo: `PATCH`
+- URL: `/recipes/:id`
+- Auth: Bearer token requerido.
+- Content-Type: `multipart/form-data`
+
+Campos esperados (multipart):
+
+- `image`: archivo opcional (si se envía, reemplaza la imagen previa).
+- `data`: string JSON con el mismo formato que create:
+
+```json
+{
+	"title": "Pasta integral",
+	"description": "Versión actualizada",
+	"ingredients": [
+		{
+			"name": "Harina integral",
+			"amount": 400,
+			"unit": "g"
+		}
+	]
+}
+```
+
+Response body `200 OK`:
+
+```json
+{
+	"title": "Pasta integral",
+	"description": "Versión actualizada",
+	"image": "1713758999999-pasta-integral.jpeg",
+	"ingredients": [
+		{
+			"name": "Harina integral",
+			"amount": 400,
+			"unit": "g"
+		}
+	]
+}
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: receta actualizada.
+- `400 Bad Request`: `id` inválido, JSON inválido en `data`, body inválido o ingredientes vacíos.
+- `401 Unauthorized`: token ausente/inválido.
+- `404 Not Found`: receta inexistente o no pertenece al usuario autenticado.
+- `500 Internal Server Error`: error transaccional o de archivos.
+
+#### 9. Eliminar receta
+
+- Tipo: `DELETE`
+- URL: `/recipes/:id`
+- Auth: Bearer token requerido.
+
+Request body: no aplica.
+
+Response body `204 No Content` (sin cuerpo).
+
+Códigos HTTP posibles:
+
+- `204 No Content`: receta eliminada.
+- `400 Bad Request`: `id` inválido.
+- `401 Unauthorized`: token ausente/inválido.
+- `404 Not Found`: receta inexistente o no pertenece al usuario autenticado.
+
+---
+
+### Ratings (protegido con JWT)
+
+#### 10. Crear o actualizar rating de receta
+
+- Tipo: `POST`
+- URL: `/ratings`
+- Auth: Bearer token requerido.
+
+Request body (JSON):
+
+```json
+{
+	"score": 5,
+	"comment": "Excelente receta",
+	"recipeId": 1
+}
+```
+
+Response body `201 Created`:
+
+```json
+{
+	"score": 5,
+	"comment": "Excelente receta"
+}
+```
+
+Nota: este endpoint hace upsert lógico por usuario+receta (si ya existe rating, lo actualiza).
+
+Códigos HTTP posibles:
+
+- `201 Created`: rating creado o actualizado.
+- `400 Bad Request`: body inválido.
+- `401 Unauthorized`: token ausente/inválido.
+- `404 Not Found`: receta no existe.
+
+#### 11. Listar ratings de una receta
+
+- Tipo: `GET`
+- URL: `/recipes/:recipeId/ratings`
+- Auth: Bearer token requerido.
+
+Request body: no aplica.
+
+Response body `200 OK`:
+
+```json
+[
+	{
+		"score": 5,
+		"comment": "Excelente receta",
+		"user": {
+			"name": "Juan",
+			"surname": "Perez"
+		}
+	}
+]
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: ratings obtenidos.
+- `400 Bad Request`: `recipeId` inválido.
+- `401 Unauthorized`: token ausente/inválido.
+
+## Variables de entorno
+
+Basadas en [.env-template](.env-template):
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_NAME`
+- `JWT_SECRET`
