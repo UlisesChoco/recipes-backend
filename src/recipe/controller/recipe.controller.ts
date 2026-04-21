@@ -32,6 +32,14 @@ export class RecipeController {
         return await this.recipeService.findByUserId(req.user.sub);
     }
 
+    @Get('public/:id')
+    @HttpCode(200)
+    async retrievePublicRecipeById(
+        @Param('id', ParseIntPipe) id: number
+    ): Promise<RecipeWithUserAndIngredientsDTO> {
+        return await this.recipeService.findById(id);
+    }
+
     @Get(':id')
     @HttpCode(200)
     @UseGuards(JwtGuard)

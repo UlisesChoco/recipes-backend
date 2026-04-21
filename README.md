@@ -131,6 +131,16 @@ Ejemplo:
 
 Nota: en desarrollo local, `api` suele mapear al host del backend (por ejemplo `http://localhost:3000/uploads/...`).
 
+### Enlaces públicos compartibles
+
+- Cada receta puede consultarse mediante un endpoint público sin JWT.
+- El endpoint devuelve datos de receta, autor e ingredientes.
+- No expone calificaciones (ratings), para no publicar información de usuarios autenticados en un link abierto.
+
+Ejemplo de link público compartible:
+
+- `http://localhost:3000/recipes/public/15`
+
 ### Seguridad
 
 - Los endpoints protegidos esperan header `Authorization: Bearer <JWT>`.
@@ -237,7 +247,7 @@ Códigos HTTP posibles:
 
 ---
 
-### Recipes (protegido con JWT)
+### Recipes
 
 #### 4. Listar recetas públicas
 
@@ -330,6 +340,42 @@ Códigos HTTP posibles:
 - `200 OK`: receta encontrada.
 - `400 Bad Request`: `id` inválido.
 - `401 Unauthorized`: token ausente/inválido.
+- `404 Not Found`: receta no existe.
+
+#### 6.b Obtener receta pública por link compartible (sin JWT)
+
+- Tipo: `GET`
+- URL: `/recipes/public/:id`
+- Auth: no requiere token.
+
+Request body: no aplica.
+
+Response body `200 OK`:
+
+```json
+{
+	"id": 1,
+	"title": "Pasta casera",
+	"description": "Receta simple",
+	"image": "1713758123456-pasta.jpeg",
+	"user": {
+		"name": "Juan",
+		"surname": "Perez"
+	},
+	"ingredients": [
+		{
+			"name": "Harina",
+			"amount": 500,
+			"unit": "g"
+		}
+	]
+}
+```
+
+Códigos HTTP posibles:
+
+- `200 OK`: receta encontrada.
+- `400 Bad Request`: `id` inválido.
 - `404 Not Found`: receta no existe.
 
 #### 7. Crear receta
