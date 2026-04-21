@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Recipe } from "../entity/recipe.entity";
 import { DataSource, Repository } from "typeorm";
@@ -16,6 +16,8 @@ import { Rating } from "src/rating/entity/rating.entity";
 
 @Injectable()
 export class RecipeService {
+    private readonly logger = new Logger(RecipeService.name);
+
     constructor(
         @InjectRepository(Recipe) private readonly recipeRepository: Repository<Recipe>,
         private readonly dataSource: DataSource
@@ -24,6 +26,7 @@ export class RecipeService {
     async existsById(
         id: number
     ): Promise<boolean> {
+        this.logger.log(`Checking if recipe with id ${id} exists`);
         return await this.recipeRepository.existsBy({ id });
     }
     
@@ -35,9 +38,12 @@ export class RecipeService {
             relations: ['user', 'ingredients']
         });
 
-        if (!entity)
+        if (!entity) {
+            this.logger.error(`Recipe with id ${id} not found`);
             throw new NotFoundException();
+        }
 
+        this.logger.log(`Recipe with id ${id} found: ${entity.title}`);
         return RecipeMapper.toRecipeWithUserAndIngredientsDTO(entity);
     }
 
@@ -46,6 +52,7 @@ export class RecipeService {
             relations: ['user']
         });
 
+        this.logger.log(`Found ${entities.length} recipes`);
         return entities.map(entity => RecipeMapper.toRecipeWithUserDTO(entity));
     }
 
@@ -60,6 +67,7 @@ export class RecipeService {
             }
         });
 
+        this.logger.log(`Found ${entities.length} recipes for user with id ${userId}`);
         return entities.map(entity => RecipeMapper.toRecipeDTO(entity));
     }
 
@@ -76,9 +84,12 @@ export class RecipeService {
             }
         });
 
-        if (!entity)
+        if (!entity) {
+            this.logger.error(`Recipe with id ${id} not found`);
             throw new NotFoundException();
+        }
 
+        this.logger.log(`Recipe with id ${id} found for user with id ${userId}: ${entity.title}`);
         return entity;
     }
 
@@ -87,8 +98,10 @@ export class RecipeService {
         image: any,
         dto: CreateRecipeDTO
     ): Promise<RecipeWithIngredientsDTO> {
-        if (dto.ingredients && dto.ingredients.length === 0)
+        if (dto.ingredients && dto.ingredients.length === 0) {
+            this.logger.error("Recipe must have at least one ingredient");
             throw new BadRequestException("Recipe must have at least one ingredient");
+        }
 
         const imageFilePath = await saveImage(image);
 
@@ -117,8 +130,10 @@ export class RecipeService {
                 return savedRecipe;
             });
 
+            this.logger.log(`Recipe created successfully: ${savedRecipe.title}`);
             return RecipeMapper.toRecipeWithIngredientsDTO(savedRecipe);
         } catch (error) {
+            this.logger.error("Error occurred while creating recipe: " + error);
             await deleteImage(imageFilePath);
             throw error;
         }
@@ -158,8 +173,12 @@ export class RecipeService {
             });
 
             if (newImagePath && oldImagePath) await deleteImage("/app/uploads/"+oldImagePath);
+
+            this.logger.log(`Recipe with id ${id} updated successfully for user with id ${userId}`);
         } catch (error) {
             if (newImagePath) await deleteImage("/app/uploads/"+newImagePath);
+
+            this.logger.error(`Error occurred while updating recipe with id ${id} for user with id ${userId}: ` + error);
 
             throw error;
         }
@@ -183,13 +202,16 @@ export class RecipeService {
 
             const recipe = await this.findByIdAndUserId(id, userId);
 
-            if (!recipe)
+            if (!recipe) {
+                this.logger.error(`Recipe with id ${id} not found for user with id ${userId}`);
                 throw new NotFoundException('Recipe not found');
+            }
 
             await ingredientRepository.delete({ recipe: { id: id } });
             await ratingRepository.delete({ recipe: { id: id } });
             await recipeRepository.delete({ id: id });
 
+            this.logger.log(`Recipe with id ${id} deleted successfully for user with id ${userId}`);
             if (recipe.image) await deleteImage("/app/uploads/"+recipe.image);
         });
     }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Rating } from "../entity/rating.entity";
 import { Repository } from "typeorm";
@@ -9,6 +9,8 @@ import { RatingUserDTO } from "../dto/rating-user.dto";
 
 @Injectable()
 export class RatingService {
+    private readonly logger = new Logger(RatingService.name);
+
     constructor(
         @InjectRepository(Rating) private readonly ratingRepository: Repository<Rating>,
         private readonly recipeService: RecipeService
@@ -25,6 +27,7 @@ export class RatingService {
             }
         });
 
+        this.logger.log(`Rating found for user with id ${userId} and recipe with id ${recipeId}: ${!!rating}`);
         return rating
     }
 
@@ -54,6 +57,8 @@ export class RatingService {
 
         const savedEntity = await this.ratingRepository.save(rating);
         
+        this.logger.log(`Rating created/updated successfully for user with id ${userId} and recipe with id ${recipeId}`);
+
         return RatingMapper.toRatingDTO(savedEntity);
     }
 
@@ -67,6 +72,7 @@ export class RatingService {
             relations: ['user']
         });
 
+        this.logger.log(`Ratings found for recipe with id ${recipeId}: ${ratings.length}`);
         return ratings.map(rating => RatingMapper.toRatingUserDTO(rating));
     }
 }

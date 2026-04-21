@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/user/entity/user.entity";
 import { Repository } from "typeorm";
@@ -12,6 +12,8 @@ import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
+
     constructor(
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         private readonly jwtService: JwtService
@@ -21,8 +23,10 @@ export class AuthService {
         dto: AuthRegisterDTO
     ): Promise<AuthDTO> {
         const exists = await this.userRepository.existsBy({ email: dto.email });
-        if (exists)
+        if (exists) {
+            this.logger.error(`User with email ${dto.email} already exists`);
             throw new BadRequestException("User with email already exists");
+        }
 
         const hashedPassword = await bcrypt.hash(dto.password, 10);
         const entity = this.userRepository.create({
@@ -32,6 +36,7 @@ export class AuthService {
 
         const savedEntity = await this.userRepository.save(entity);
 
+        this.logger.log(`User registered successfully: ${savedEntity.email}`);
         return AuthMapper.toAuthDTO(savedEntity);
     }
 
@@ -39,13 +44,17 @@ export class AuthService {
         dto: AuthLoginRequestDTO
     ): Promise<AuthLoginResponseDTO> {
         const entity = await this.userRepository.findOneBy({ email: dto.email });
-        if (!entity)
+        if (!entity) {
+            this.logger.error(`Invalid email or password for email: ${dto.email}`);
             throw new UnauthorizedException("Invalid email or password");
+        }
 
         const passwordMatches = await bcrypt.compare(dto.password, entity.password);
-        if (!passwordMatches)
+        if (!passwordMatches) {
+            this.logger.error(`Invalid password for email: ${dto.email}`);
             throw new UnauthorizedException("Invalid email or password");
-        
+        }
+
         const payload = {
             sub: entity.id,
             name: entity.name,
@@ -54,6 +63,7 @@ export class AuthService {
         };
         const token = this.jwtService.sign(payload);
 
+        this.logger.log(`User logged in successfully: ${entity.email}`);
         return new AuthLoginResponseDTO(token);
     }
 }
