@@ -38,46 +38,46 @@ Contenido sugerido de `docker-compose.yml`:
 
 ```yaml
 services:
-	recipes-backend:
-		build: ./recipes-backend
-		container_name: recipes_backend
-		ports:
-			- "3000:3000"
-		env_file:
-			- ./recipes-backend/.env
-		depends_on:
-			db:
-				condition: service_healthy
+  recipes-backend:
+    build: ./recipes-backend
+    container_name: recipes_backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./recipes-backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
 
-	db:
-		image: mysql:8.4.8
-		container_name: mysql_db
-		restart: unless-stopped
-		environment:
-			MYSQL_ROOT_PASSWORD: root
-			MYSQL_DATABASE: recipes
-		ports:
-			- "3306:3306"
-		volumes:
-			- db_data:/var/lib/mysql
-			- ./recipes-backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
-		healthcheck:
-			test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-			interval: 5s
-			timeout: 5s
-			retries: 10
+  db:
+    image: mysql:8.4.8
+    container_name: mysql_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: recipes
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./recipes-backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-	recipes-frontend:
-		build:
-			context: ./recipes-frontend
-			args:
-				VITE_API_URL: http://localhost:3000
-		container_name: recipes_frontend
-		ports:
-			- "80:80"
+  recipes-frontend:
+    build:
+      context: ./recipes-frontend
+      args:
+        VITE_API_URL: http://localhost:3000
+    container_name: recipes_frontend
+    ports:
+      - "80:80"
 
 volumes:
-	db_data:
+  db_data:
 ```
 
 ### 4) Levantar la aplicación
